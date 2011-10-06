@@ -49,7 +49,7 @@ describe Discogs::Wrapper do
 
     it "should generate the correct artist URL to parse" do
       mock_http_with_response "200", valid_artist_xml
-      URI.should_receive(:parse).with("http://api.discogs.com/artist/Dark?f=xml").and_return(@uri)
+      URI.should_receive(:parse).with("http://api.discogs.com/artist/Dark?f=xml&releases=1").and_return(@uri)
 
       @wrapper.get_artist(@artist_name)
     end
@@ -84,7 +84,7 @@ describe Discogs::Wrapper do
 
     it "should sanitize the path correctly" do
       mock_http_with_response "200", valid_artist_xml
-      URI.should_receive(:parse).with("http://api.discogs.com/artist/A+very+long+band+name?f=xml").and_return(@uri)
+      URI.should_receive(:parse).with("http://api.discogs.com/artist/A+very+long+band+name?f=xml&releases=1").and_return(@uri)
 
       @wrapper.get_artist("A very long band name")
     end 

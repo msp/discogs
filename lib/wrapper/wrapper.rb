@@ -23,7 +23,7 @@ class Discogs::Wrapper
   end
 
   def get_artist(name)
-    query_and_build "artist/#{name}", Discogs::Artist
+    query_and_build "artist/#{name}", Discogs::Artist, {:releases => "1"}
   end
 
   def get_label(name)
@@ -42,14 +42,15 @@ class Discogs::Wrapper
 
  private
 
-  def query_and_build(path, klass)
-    data = query_api(path)
+  def query_and_build(path, klass, params={})
+    data = query_api(path, params)
     resource = klass.send(:new, data)
     resource.build!
   end
 
   # Queries the API and handles the response.
-  def query_api(path, params={})
+  def query_api(path, params={})              
+    puts "MSP about to hit API"
     response = make_request(path, params)
 
     raise_unknown_resource(path) if response.code == "404"
@@ -58,31 +59,39 @@ class Discogs::Wrapper
     # Unzip the response data, or just read it in directly
     # if the API responds without gzipping.
     response_body = nil
-    begin
+    begin       
+        puts "MSP got response.body #{response.body}"
         inflated_data = Zlib::GzipReader.new(StringIO.new(response.body))
         response_body = inflated_data.read
+        
+        
     rescue Zlib::GzipFile::Error
         response_body = response.body
     end
-    
+       
+    puts "MSP got response #{response_body}"
     response_body
   end
 
   # Generates a HTTP request and returns the response.
   def make_request(path, params={})
-    uri = build_uri(path, params)
+    puts "MSP make_request path: #{path}"
+    uri = build_uri(path, params)   
+    
+    puts "MSP make_request uri : #{uri}"
 
     request = Net::HTTP::Get.new(uri.path + "?" + uri.query)
     request.add_field("Accept-Encoding", "gzip,deflate")
-    request.add_field("User-Agent", @user_agent)
+    # request.add_field("User-Agent", @user_agent)
 
     Net::HTTP.new(uri.host).start do |http|
+      puts "MSP exec request : #{uri.host}"
       http.request(request)
     end
   end
 
   def build_uri(path, params={})
-    parameters = { :f => "xml" }.merge(params)
+    parameters = { :f => "xml"}.merge(params)
     querystring = "?" + parameters.map { |key, value| "#{key}=#{value}" }.sort.join("&")
 
     URI.parse(File.join(@@root_host, sanitize_path(path, querystring)))
@@ -95,10 +104,12 @@ class Discogs::Wrapper
   end
 
   def raise_unknown_resource(path='')
+    puts "Unknown Discogs resource: #{path}"
     raise Discogs::UnknownResource, "Unknown Discogs resource: #{path}"
   end
 
   def raise_internal_server_error
+    puts "The remote server cannot complete the request"
     raise Discogs::InternalServerError, "The remote server cannot complete the request"
   end
 
