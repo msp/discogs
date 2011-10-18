@@ -50,7 +50,6 @@ class Discogs::Wrapper
 
   # Queries the API and handles the response.
   def query_api(path, params={})              
-    puts "MSP about to hit API"
     response = make_request(path, params)
 
     raise_unknown_resource(path) if response.code == "404"
@@ -60,7 +59,6 @@ class Discogs::Wrapper
     # if the API responds without gzipping.
     response_body = nil
     begin       
-        puts "MSP got response.body #{response.body}"
         inflated_data = Zlib::GzipReader.new(StringIO.new(response.body))
         response_body = inflated_data.read
         
@@ -69,23 +67,19 @@ class Discogs::Wrapper
         response_body = response.body
     end
        
-    puts "MSP got response #{response_body}"
     response_body
   end
 
   # Generates a HTTP request and returns the response.
   def make_request(path, params={})
-    puts "MSP make_request path: #{path}"
     uri = build_uri(path, params)   
     
-    puts "MSP make_request uri : #{uri}"
 
     request = Net::HTTP::Get.new(uri.path + "?" + uri.query)
     request.add_field("Accept-Encoding", "gzip,deflate")
     # request.add_field("User-Agent", @user_agent)
 
     Net::HTTP.new(uri.host).start do |http|
-      puts "MSP exec request : #{uri.host}"
       http.request(request)
     end
   end

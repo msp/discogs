@@ -23,7 +23,6 @@ describe Discogs::Wrapper do
     describe "when calling simple artist attributes" do
 
       it "should have a name attribute" do             
-        puts "MSP artist : #{@artist}"
         @artist.name.should == "Root"
       end
   
