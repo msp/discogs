@@ -21,6 +21,10 @@ describe Discogs::Artist::Release do
     it "should have a ID attribute" do
       @artist_release.id.should == "999333"
     end
+    
+    it "should have a main release attribute" do
+      @artist_release.main_release.should == "2525252"
+    end
 
     it "should have a status attribute" do
       @artist_release.status.should == "Accepted"
